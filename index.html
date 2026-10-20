@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>محاكي أوبر مصر — النموذج الأولي</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <header id="hud">
+    <div class="title">محاكي أوبر مصر <small>النموذج الأولي — الزقازيق</small></div>
+    <div id="source" class="source"></div>
+    <div class="row"><span>السرعة</span><b id="speed">0</b> كم/س</div>
+    <div class="row"><span>المباني</span><b id="b-total">—</b></div>
+    <div class="row"><span class="dot actual"></span>ارتفاع فعلي <b id="b-actual">—</b></div>
+    <div class="row"><span class="dot est"></span>ارتفاع تقديري <b id="b-est">—</b></div>
+  </header>
+
+  <section id="minimap" aria-label="خريطة مصغرة للزقازيق">
+    <div class="map-heading"><strong>الزقازيق</strong><span id="street-name">جارٍ تحديد الشارع...</span></div>
+    <canvas id="map-canvas" width="280" height="190" aria-label="خريطة الطرق والمباني وموقع السيارة"></canvas>
+  </section>
+
+  <div id="collision-alert" role="alert" aria-live="assertive" hidden>اصطدام! توقفت السيارة.</div>
+
+  <div id="banner" hidden></div>
+
+  <footer id="attribution"></footer>
+
+  <div id="help">الأسهم أو WASD للقيادة · Space فرامل · C تبديل الكاميرا · R إعادة التموضع</div>
+
+  <div id="controls" aria-label="أزرار التحكم">
+    <div class="pad">
+      <button data-key="left" aria-label="يسار">◀</button>
+      <button data-key="right" aria-label="يمين">▶</button>
+    </div>
+    <div class="pad">
+      <button data-key="up" aria-label="تسارع">▲</button>
+      <button data-key="down" aria-label="فرامل/رجوع">▼</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

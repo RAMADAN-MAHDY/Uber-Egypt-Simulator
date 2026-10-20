@@ -1,0 +1,33 @@
+:root { --fg: #14213d; --bg: rgba(255,255,255,.88); --accent: #2b5aa0; --sand: #dccaa0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; font-family: "Segoe UI", Tahoma, Arial, sans-serif; color: var(--fg); background: #cfe3f2; touch-action: none; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+#hud { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 10px; background: var(--bg); border-radius: 12px; padding: 10px 14px; font-size: 14px; line-height: 1.7; min-width: 190px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+#hud .title { font-weight: 700; font-size: 16px; }
+#hud .title small { display: block; font-weight: 400; font-size: 12px; color: #555; }
+#hud .source { font-size: 12px; margin: 4px 0 6px; color: #555; }
+#hud .row { display: flex; align-items: center; gap: 6px; }
+#hud .row b { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+.dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.dot.actual { background: var(--accent); }
+.dot.est { background: var(--sand); border: 1px solid #b9a67a; }
+
+#minimap { position: fixed; right: 10px; bottom: 48px; width: min(280px, 42vw); background: var(--bg); border: 1px solid rgba(20,33,61,.16); border-radius: 12px; padding: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+.map-heading { display: flex; align-items: baseline; gap: 8px; padding: 0 3px 5px; direction: rtl; }
+.map-heading strong { font-size: 13px; white-space: nowrap; }
+.map-heading span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: #555; }
+#map-canvas { display: block; width: 100%; height: auto; border-radius: 7px; background: #e9e5d6; }
+#collision-alert { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 3; background: #9f2525; color: #fff; border: 2px solid rgba(255,255,255,.8); border-radius: 12px; padding: 12px 20px; font-weight: 700; box-shadow: 0 4px 18px rgba(0,0,0,.3); }
+
+#banner { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 10px; max-width: min(360px, 52vw); background: #fff3cd; color: #664d03; border: 1px solid #ffda6a; border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.6; }
+#attribution { position: fixed; bottom: 4px; left: 6px; font-size: 11px; background: rgba(255,255,255,.75); padding: 2px 8px; border-radius: 6px; direction: rtl; }
+#help { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); font-size: 12px; background: rgba(255,255,255,.75); padding: 4px 10px; border-radius: 8px; white-space: nowrap; }
+
+#controls { position: fixed; inset-inline: 0; bottom: max(18px, env(safe-area-inset-bottom)); display: none; justify-content: space-between; padding: 0 18px; direction: ltr; pointer-events: none; }
+#controls .pad { display: flex; gap: 14px; pointer-events: auto; }
+#controls button { width: 72px; height: 72px; border-radius: 50%; border: 0; font-size: 26px; background: rgba(255,255,255,.8); color: var(--fg); box-shadow: 0 2px 8px rgba(0,0,0,.25); touch-action: none; user-select: none; -webkit-user-select: none; }
+#controls button.on { background: var(--accent); color: #fff; }
+
+@media (pointer: coarse) { #controls { display: flex; } #help { display: none; } }
+@media (max-width: 640px) { #hud { font-size: 12px; min-width: 150px; padding: 8px 10px; } #hud .title { font-size: 14px; } #banner { max-width: 50vw; font-size: 11px; } #minimap { right: 8px; bottom: 112px; width: min(210px, 48vw); padding: 6px; } .map-heading strong { font-size: 12px; } .map-heading span { font-size: 10px; } }
