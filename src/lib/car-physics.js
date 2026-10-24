@@ -2,7 +2,7 @@ export const CAR_PARAMS = {
   accel: 9,
   brake: 22,
   reverseAccel: 5,
-  maxForward: 22, // م/ث ≈ 79 كم/س
+  maxForward: 50, // م/ث ≈ 79 كم/س
   maxReverse: 6,
   drag: 0.35,
   wheelbase: 2.7,

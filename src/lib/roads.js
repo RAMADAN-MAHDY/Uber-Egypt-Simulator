@@ -1,11 +1,40 @@
 const WIDTHS = {
   motorway: 14, trunk: 12, primary: 11, secondary: 9, tertiary: 8,
   unclassified: 6, residential: 6, living_street: 5, service: 4,
+  track: 3.5, path: 2, footway: 2, pedestrian: 3, cycleway: 2.5,
 };
+const NON_DRIVABLE = new Set(['footway', 'pedestrian', 'path', 'bridleway', 'cycleway', 'steps']);
+
+export function isDrivableRoad(type) {
+  return !NON_DRIVABLE.has(type);
+}
 
 export function roadWidth(highway = '') {
   const base = String(highway).replace('_link', '');
   return WIDTHS[base] ?? 5;
+}
+
+export function closestRoadPoint(position, roads) {
+  let nearest = null;
+  for (const road of roads) {
+    if (!isDrivableRoad(road.type)) continue;
+    for (let i = 0; i < road.points.length - 1; i++) {
+      const [ax, az] = road.points[i];
+      const [bx, bz] = road.points[i + 1];
+      const dx = bx - ax;
+      const dz = bz - az;
+      const lengthSquared = dx * dx + dz * dz;
+      if (lengthSquared < 1) continue;
+      const t = Math.max(0, Math.min(1, ((position.x - ax) * dx + (position.z - az) * dz) / lengthSquared));
+      const x = ax + t * dx;
+      const z = az + t * dz;
+      const distance = Math.hypot(position.x - x, position.z - z);
+      if (!nearest || distance < nearest.distance) {
+        nearest = { x, z, distance, h: Math.atan2(dz, dx), name: road.name };
+      }
+    }
+  }
+  return nearest;
 }
 
 /**
