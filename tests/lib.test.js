@@ -4,13 +4,14 @@ import { readFileSync } from 'node:fs';
 import { makeProjector } from '../src/lib/geo.js';
 import { resolveHeight } from '../src/lib/heights.js';
 import { computeStats } from '../src/lib/stats.js';
-import { ribbon, roadWidth } from '../src/lib/roads.js';
+import { closestRoadPoint, isDrivableRoad, ribbon, roadWidth } from '../src/lib/roads.js';
 import { stepCar } from '../src/lib/car-physics.js';
 import { buildCityGeometry } from '../src/lib/city-geometry.js';
 import { collidesWithBuildings } from '../src/lib/car-collision.js';
-import { BBOX, ESTIMATED_LEVELS, LEVEL_HEIGHT_M } from '../src/lib/config.js';
+import { ESTIMATED_LEVELS, LEVEL_HEIGHT_M } from '../src/lib/config.js';
 
 const demo = JSON.parse(readFileSync(new URL('../public/data/city.demo.geojson', import.meta.url), 'utf8'));
+const DEMO_BBOX = demo.metadata.bbox;
 
 test('الإسقاط: المرجع عند الصفر والاتجاهات صحيحة', () => {
   const p = makeProjector(30.5877, 31.5021);
@@ -23,6 +24,16 @@ test('الإسقاط: المرجع عند الصفر والاتجاهات صحي
   assert.ok(xe > 90 && xe < 100, 'الشرق +x بطول درجة مقيّس بجيب التمام');
   const [lon, lat] = p.unproject(...p.project(31.5, 30.59));
   assert.ok(Math.abs(lon - 31.5) < 1e-9 && Math.abs(lat - 30.59) < 1e-9);
+});
+
+test('اختيار أقرب طريق يستبعد مسارات المشاة', () => {
+  const roads = [
+    { type: 'footway', name: 'ممشى', points: [[0, 0], [1, 0]] },
+    { type: 'residential', name: 'شارع', points: [[10, 0], [20, 0]] },
+  ];
+  assert.equal(isDrivableRoad('footway'), false);
+  assert.equal(isDrivableRoad('track'), true);
+  assert.deepEqual(closestRoadPoint({ x: 0, z: 0 }, roads), { x: 10, z: 0, distance: 10, h: 0, name: 'شارع' });
 });
 
 test('الارتفاعات: height ثم levels ثم تقدير', () => {
@@ -76,7 +87,7 @@ test('البيانات التجريبية: المخطط والحدود والت�
   for (const f of demo.features) {
     const ring = f.geometry.type === 'Polygon' ? f.geometry.coordinates[0] : f.geometry.coordinates;
     for (const [lon, lat] of ring) {
-      assert.ok(lon >= BBOX.west && lon <= BBOX.east && lat >= BBOX.south && lat <= BBOX.north, 'داخل الحدود');
+      assert.ok(lon >= DEMO_BBOX.west && lon <= DEMO_BBOX.east && lat >= DEMO_BBOX.south && lat <= DEMO_BBOX.north, 'داخل الحدود');
     }
     if (f.geometry.type === 'Polygon') assert.deepEqual(ring[0], ring.at(-1), 'حلقة مغلقة');
   }

@@ -10,17 +10,23 @@
   <canvas id="scene"></canvas>
 
   <header id="hud">
-    <div class="title">محاكي أوبر مصر <small>النموذج الأولي — الزقازيق</small></div>
+    <div class="title">محاكي أوبر مصر <small id="location-name">طهرة حميد — الزقازيق</small></div>
     <div id="source" class="source"></div>
     <div class="row"><span>السرعة</span><b id="speed">0</b> كم/س</div>
+    <div class="row"><span>الإحداثيات</span><b id="position">—</b></div>
     <div class="row"><span>المباني</span><b id="b-total">—</b></div>
     <div class="row"><span class="dot actual"></span>ارتفاع فعلي <b id="b-actual">—</b></div>
     <div class="row"><span class="dot est"></span>ارتفاع تقديري <b id="b-est">—</b></div>
   </header>
 
-  <section id="minimap" aria-label="خريطة مصغرة للزقازيق">
-    <div class="map-heading"><strong>الزقازيق</strong><span id="street-name">جارٍ تحديد الشارع...</span></div>
-    <canvas id="map-canvas" width="280" height="190" aria-label="خريطة الطرق والمباني وموقع السيارة"></canvas>
+  <section id="minimap" aria-label="خريطة مصغرة لطهرة حميد والزقازيق">
+    <div class="map-heading"><strong id="map-place">طهرة حميد</strong><span id="street-name">جارٍ تحديد الشارع...</span><button id="map-follow" type="button" aria-label="إعادة متابعة السيارة">موقعي</button></div>
+    <div id="map-view" aria-label="خريطة الطرق والمباني وموقع السيارة">
+      <canvas id="map-fallback" width="280" height="190" aria-hidden="true"></canvas>
+      <div id="map-canvas"></div>
+      <div id="map-error" hidden>تعذر تحميل خريطة الويب؛ المعاينة المحلية ظاهرة.</div>
+    </div>
+    <small class="map-help">انقر للانتقال إلى أقرب طريق · اسحب للاستكشاف ثم اضغط «موقعي»</small>
   </section>
 
   <div id="collision-alert" role="alert" aria-live="assertive" hidden>اصطدام! توقفت السيارة.</div>
