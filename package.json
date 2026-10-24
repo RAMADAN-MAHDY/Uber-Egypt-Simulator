@@ -11,10 +11,12 @@
     "test": "node --test tests/*.test.js",
     "data:demo": "node scripts/make-demo-data.mjs",
     "data:fetch": "node scripts/fetch-osm.mjs",
+    "data:fetch:tahra-hamid": "node scripts/fetch-osm.mjs --output=public/data/tahra-hamid.geojson",
     "data:stats": "node scripts/stats.mjs",
     "bench": "node scripts/bench.mjs"
   },
   "dependencies": {
+    "maplibre-gl": "^6.15.0",
     "three": "^0.186.1",
     "vite": "^8.3.4"
   }

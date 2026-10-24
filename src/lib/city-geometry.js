@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { resolveHeight, isActual } from './heights.js';
-import { ribbon, roadWidth } from './roads.js';
+import { closestRoadPoint, ribbon, roadWidth } from './roads.js';
 import { computeStats } from './stats.js';
 
 const LOW = new THREE.Color(0x9cc3e8);
@@ -51,8 +51,8 @@ export function buildCityGeometry(fc, projector) {
   const balconies = [];
   const roofEdges = [];
   const roofTanks = [];
+  const landUseGeometries = new Map();
   let skipped = 0;
-  let nearest = null; // أقرب قطعة طريق لمركز المنطقة (موضع انطلاق السيارة)
 
   for (const f of fc.features || []) {
     const g = f.geometry;
@@ -69,19 +69,6 @@ export function buildCityGeometry(fc, projector) {
       for (const v of r.positions) roadPositions.push(v);
       for (const i of r.indices) roadIndices.push(i + offset);
 
-      for (let i = 0; i < pts.length - 1; i++) {
-        const [ax, az] = pts[i];
-        const [bx, bz] = pts[i + 1];
-        const dx = bx - ax;
-        const dz = bz - az;
-        const l2 = dx * dx + dz * dz;
-        if (l2 < 1) continue;
-        const t = Math.max(0, Math.min(1, -(ax * dx + az * dz) / l2));
-        const cx = ax + t * dx;
-        const cz = az + t * dz;
-        const d = Math.hypot(cx, cz);
-        if (!nearest || d < nearest.d) nearest = { d, x: cx, z: cz, h: Math.atan2(dz, dx) };
-      }
     } else if (g.type === 'Polygon' && p.building) {
       let ring = g.coordinates[0].map(([lon, lat]) => projector.project(lon, lat));
       const first = ring[0];
@@ -147,6 +134,16 @@ export function buildCityGeometry(fc, projector) {
         }
         roofEdges.push({ x: (ax + bx) / 2, y: height + 0.35, z: (az + bz) / 2, angle, length });
       }
+    } else if (g.type === 'Polygon' && (p.landuse || p.natural)) {
+      const kind = p.landuse || p.natural;
+      const ring = g.coordinates[0].map(([lon, lat]) => projector.project(lon, lat));
+      if (ring.length < 4 || polygonArea(ring) < 25) continue;
+      const shape = new THREE.Shape(ring.map(([x, z]) => new THREE.Vector2(x, -z)));
+      const geo = new THREE.ShapeGeometry(shape);
+      geo.rotateX(-Math.PI / 2);
+      geo.translate(0, -0.01, 0);
+      if (!landUseGeometries.has(kind)) landUseGeometries.set(kind, []);
+      landUseGeometries.get(kind).push(geo);
     }
   }
 
@@ -157,8 +154,14 @@ export function buildCityGeometry(fc, projector) {
 
   const buildingsGeometry = buildingGeos.length ? mergeGeometries(buildingGeos, false) : new THREE.BufferGeometry();
   buildingGeos.forEach((g) => g.dispose());
+  const landUse = {};
+  for (const [kind, geometries] of landUseGeometries) {
+    landUse[kind] = mergeGeometries(geometries, false);
+    geometries.forEach((geo) => geo.dispose());
+  }
 
   let spawn = { x: 0, z: 0, h: 0 };
+  const nearest = closestRoadPoint({ x: 0, z: 0 }, roads);
   if (nearest) spawn = { x: nearest.x, z: nearest.z, h: nearest.h };
 
   const triangles =
@@ -167,6 +170,7 @@ export function buildCityGeometry(fc, projector) {
   return {
     roadsGeometry,
     buildingsGeometry,
+    landUse,
     buildings,
     roads,
     windows,
