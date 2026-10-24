@@ -2,10 +2,12 @@
 // الاستخدام: npm run data:fetch [-- --bbox=جنوب,غرب,شمال,شرق]
 // البيانات © مساهمو OpenStreetMap، ترخيص ODbL — https://www.openstreetmap.org/copyright
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { BBOX } from '../src/lib/config.js';
 import { computeStats } from '../src/lib/stats.js';
 
 const arg = process.argv.find((a) => a.startsWith('--bbox='));
+const outputArg = process.argv.find((a) => a.startsWith('--output='));
 let bbox = BBOX;
 if (arg) {
   const [south, west, north, east] = arg.slice(7).split(',').map(Number);
@@ -14,8 +16,10 @@ if (arg) {
 }
 const bb = `${bbox.south},${bbox.west},${bbox.north},${bbox.east}`;
 const HIGHWAYS =
-  'motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link';
-const query = `[out:json][timeout:90];(way["highway"~"^(${HIGHWAYS})$"](${bb});way["building"](${bb}););out geom;`;
+  'motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|track|path|footway|pedestrian|bridleway|cycleway|steps|road|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link';
+const LANDUSE = 'residential|farmland|orchard|meadow|grass|industrial|commercial|retail|cemetery|recreation_ground|forest|vineyard|construction';
+const NATURAL = 'water|wood|scrub|grassland|heath';
+const query = `[out:json][timeout:120];(way["highway"~"^(${HIGHWAYS})$"](${bb});way["building"](${bb});way["landuse"~"^(${LANDUSE})$"](${bb});way["natural"~"^(${NATURAL})$"](${bb}););out geom;`;
 
 const ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
 
@@ -39,7 +43,7 @@ async function fetchOverpass() {
   throw lastErr;
 }
 
-const KEEP = ['highway', 'name', 'name:ar', 'oneway', 'lanes', 'building', 'building:levels', 'height', 'roof:levels'];
+const KEEP = ['highway', 'name', 'name:ar', 'name:en', 'oneway', 'lanes', 'building', 'building:levels', 'height', 'roof:levels', 'landuse', 'natural'];
 const data = await fetchOverpass();
 const features = [];
 for (const el of data.elements) {
@@ -53,6 +57,9 @@ for (const el of data.elements) {
     features.push({ type: 'Feature', id: `way/${el.id}`, properties, geometry: { type: 'Polygon', coordinates: [coords] } });
   } else if (tags.highway) {
     features.push({ type: 'Feature', id: `way/${el.id}`, properties, geometry: { type: 'LineString', coordinates: coords } });
+  } else if (tags.landuse || tags.natural) {
+    const closed = coords.length >= 4 && coords[0][0] === coords.at(-1)[0] && coords[0][1] === coords.at(-1)[1];
+    if (closed) features.push({ type: 'Feature', id: `way/${el.id}`, properties, geometry: { type: 'Polygon', coordinates: [coords] } });
   }
 }
 
@@ -70,7 +77,8 @@ const fc = {
   },
   features,
 };
-mkdirSync('public/data', { recursive: true });
-writeFileSync('public/data/city.geojson', JSON.stringify(fc));
-console.log('تم الحفظ → public/data/city.geojson');
+const outputPath = resolve(outputArg ? outputArg.slice(9) : 'public/data/city.geojson');
+mkdirSync(dirname(outputPath), { recursive: true });
+writeFileSync(outputPath, JSON.stringify(fc));
+console.log('تم الحفظ →', outputPath);
 console.log(computeStats(fc));
